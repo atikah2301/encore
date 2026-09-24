@@ -1,4 +1,4 @@
-import { fetchVenues, addVenue, updateVenue } from "./venues.js";
+import { fetchVenues, addVenue, updateVenue, isVenueInUse, deleteVenue } from "./venues.js";
 import { isDuplicateName } from "./duplicates.js";
 
 let panelEl;
@@ -32,6 +32,7 @@ export async function initVenuesView(panel) {
         <input id="venue-edit-address" type="text" />
         <p id="venue-edit-error" class="error-message" aria-live="polite" hidden></p>
         <button type="submit" class="primary">Save changes</button>
+        <button type="button" id="venue-edit-delete" class="secondary">Delete venue</button>
         <button type="button" id="venue-edit-cancel" class="secondary">Cancel</button>
       </form>
     </dialog>
@@ -42,6 +43,7 @@ export async function initVenuesView(panel) {
   panelEl.querySelector("#add-venue-cancel").addEventListener("click", closeAddVenueDialog);
   panelEl.querySelector("#venue-edit-form").addEventListener("submit", onEditSubmit);
   panelEl.querySelector("#venue-edit-cancel").addEventListener("click", closeEditDialog);
+  panelEl.querySelector("#venue-edit-delete").addEventListener("click", onDelete);
 
   await refresh();
 }
@@ -133,6 +135,19 @@ async function onEditSubmit(event) {
   }
 
   await updateVenue(editingId, { name, address: address || null });
+  closeEditDialog();
+  await refresh();
+}
+
+async function onDelete() {
+  const errorEl = panelEl.querySelector("#venue-edit-error");
+  if (await isVenueInUse(editingId)) {
+    errorEl.textContent = "This venue is linked to a show and can't be deleted.";
+    errorEl.hidden = false;
+    return;
+  }
+
+  await deleteVenue(editingId);
   closeEditDialog();
   await refresh();
 }

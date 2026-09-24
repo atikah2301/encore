@@ -1,6 +1,7 @@
 import { fetchWishlist, addToWishlist, reorderWishlist, deleteShow, markAsSeen } from "./shows.js";
 import { fetchVenues, populateVenueSelect } from "./venues.js";
 import { buildDateSeen } from "./date.js";
+import { isDuplicateName } from "./duplicates.js";
 
 let panelEl;
 let venues = [];
@@ -17,6 +18,7 @@ export async function initWishlistView(panel) {
       <select id="wishlist-venue"></select>
       <label for="wishlist-booking-url">Booking link</label>
       <input id="wishlist-booking-url" type="url" placeholder="https://..." />
+      <p id="wishlist-add-error" class="error-message" aria-live="polite" hidden></p>
       <button type="submit" class="primary">Add to wishlist</button>
     </form>
     <div id="wishlist-list"></div>
@@ -178,6 +180,15 @@ async function onAddSubmit(event) {
   const title = panelEl.querySelector("#wishlist-title").value.trim();
   const venueId = panelEl.querySelector("#wishlist-venue").value;
   const bookingUrl = panelEl.querySelector("#wishlist-booking-url").value.trim();
+  const errorEl = panelEl.querySelector("#wishlist-add-error");
+
+  if (isDuplicateName(title, items.map((i) => i.title))) {
+    errorEl.textContent = "This show is already on your wishlist.";
+    errorEl.hidden = false;
+    return;
+  }
+  errorEl.hidden = true;
+
   await addToWishlist({
     title,
     venue_id: venueId ? Number(venueId) : null,

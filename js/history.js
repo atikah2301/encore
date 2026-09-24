@@ -1,9 +1,11 @@
 import { fetchHistory, addToHistory, deleteShow } from "./shows.js";
 import { fetchVenues, populateVenueSelect } from "./venues.js";
 import { buildDateSeen, formatDateSeen } from "./date.js";
+import { isDuplicateName } from "./duplicates.js";
 
 let panelEl;
 let venues = [];
+let shows = [];
 
 export async function initHistoryView(panel) {
   panelEl = panel;
@@ -32,6 +34,7 @@ export async function initHistoryView(panel) {
       <input id="history-companions" type="text" placeholder="Who did you go with?" />
       <label for="history-notes">Notes</label>
       <textarea id="history-notes" rows="4"></textarea>
+      <p id="history-add-error" class="error-message" aria-live="polite" hidden></p>
       <button type="submit" class="primary">Add to history</button>
     </form>
     <div id="history-list"></div>
@@ -45,7 +48,7 @@ export async function initHistoryView(panel) {
 }
 
 async function refresh() {
-  const shows = await fetchHistory();
+  shows = await fetchHistory();
   renderList(shows);
 }
 
@@ -89,6 +92,14 @@ async function onAddSubmit(event) {
   const rating = panelEl.querySelector("#history-rating").value;
   const companions = panelEl.querySelector("#history-companions").value.trim();
   const notes = panelEl.querySelector("#history-notes").value.trim();
+  const errorEl = panelEl.querySelector("#history-add-error");
+
+  if (isDuplicateName(title, shows.map((s) => s.title))) {
+    errorEl.textContent = "This show is already in your history.";
+    errorEl.hidden = false;
+    return;
+  }
+  errorEl.hidden = true;
 
   const { date_seen, date_seen_precision } = buildDateSeen(year, month, day);
   await addToHistory({

@@ -1,6 +1,8 @@
 import { fetchVenues, addVenue } from "./venues.js";
+import { isDuplicateName } from "./duplicates.js";
 
 let panelEl;
+let venues = [];
 
 export async function initVenuesView(panel) {
   panelEl = panel;
@@ -15,6 +17,7 @@ export async function initVenuesView(panel) {
         <input id="add-venue-name" type="text" required />
         <label for="add-venue-address">Address</label>
         <input id="add-venue-address" type="text" />
+        <p id="add-venue-error" class="error-message" aria-live="polite" hidden></p>
         <button type="submit" class="primary">Add venue</button>
         <button type="button" id="add-venue-cancel" class="secondary">Cancel</button>
       </form>
@@ -29,7 +32,7 @@ export async function initVenuesView(panel) {
 }
 
 async function refresh() {
-  const venues = await fetchVenues();
+  venues = await fetchVenues();
   renderList(venues);
 }
 
@@ -53,6 +56,7 @@ function renderList(venues) {
 function openAddVenueDialog() {
   panelEl.querySelector("#add-venue-name").value = "";
   panelEl.querySelector("#add-venue-address").value = "";
+  panelEl.querySelector("#add-venue-error").hidden = true;
   panelEl.querySelector("#add-venue-dialog").showModal();
 }
 
@@ -64,6 +68,14 @@ async function onAddSubmit(event) {
   event.preventDefault();
   const name = panelEl.querySelector("#add-venue-name").value.trim();
   const address = panelEl.querySelector("#add-venue-address").value.trim();
+  const errorEl = panelEl.querySelector("#add-venue-error");
+
+  if (isDuplicateName(name, venues.map((v) => v.name))) {
+    errorEl.textContent = "A venue with this name already exists.";
+    errorEl.hidden = false;
+    return;
+  }
+
   await addVenue({ name, address: address || null });
   closeAddVenueDialog();
   await refresh();

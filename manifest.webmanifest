@@ -1,0 +1,24 @@
+{
+  "name": "Encore",
+  "short_name": "Encore",
+  "description": "Track the theatre shows you've seen, and the ones you want to see next",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#3b0a1a",
+  "theme_color": "#3b0a1a",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

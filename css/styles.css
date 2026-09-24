@@ -357,6 +357,11 @@ button.secondary:disabled {
   display: block;
 }
 
+.venue-row .hint {
+  margin: 4px 0 0;
+  display: block;
+}
+
 .wishlist-row-body a {
   color: var(--accent);
 }

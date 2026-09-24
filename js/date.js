@@ -13,6 +13,17 @@ export function formatDateSeen(dateSeen, precision) {
   return `${day} ${MONTHS[month - 1]} ${year}`;
 }
 
+/** Inverse of buildDateSeen - splits {date_seen, date_seen_precision} back into
+ * separate year/month/day values for prefilling an edit form, leaving fields the
+ * precision doesn't cover blank rather than showing the "01" placeholder default. */
+export function parseDateSeen(dateSeen, precision) {
+  if (!dateSeen) return { year: "", month: "", day: "" };
+  const [year, month, day] = dateSeen.split("-").map(Number);
+  if (precision === "year") return { year, month: "", day: "" };
+  if (precision === "month") return { year, month, day: "" };
+  return { year, month, day };
+}
+
 /** Builds a {date_seen, date_seen_precision} pair from separate year/month/day inputs,
  * where month/day may be blank - unknown parts default to "01" per the schema's
  * convention (see supabase/migrations README) so date_seen always sorts correctly. */

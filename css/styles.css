@@ -403,6 +403,7 @@ dialog#mark-seen-dialog {
   border-radius: var(--radius);
   padding: 0;
   background: transparent;
+  color: var(--text);
   max-width: 420px;
   width: calc(100% - 32px);
 }

@@ -1,4 +1,4 @@
-import { fetchWishlist, addToWishlist, reorderWishlist, deleteShow, markAsSeen } from "./shows.js";
+import { fetchWishlist, addToWishlist, updateShow, reorderWishlist, deleteShow, markAsSeen } from "./shows.js";
 import { fetchVenues, populateVenueSelect } from "./venues.js";
 import { buildDateSeen } from "./date.js";
 import { isDuplicateName } from "./duplicates.js";
@@ -51,6 +51,21 @@ export async function initWishlistView(panel) {
         <button type="button" id="mark-seen-cancel" class="secondary">Cancel</button>
       </form>
     </dialog>
+
+    <dialog id="wishlist-edit-dialog">
+      <form id="wishlist-edit-form" class="card">
+        <h2>Edit wishlist item</h2>
+        <label for="wishlist-edit-title">Show title</label>
+        <input id="wishlist-edit-title" type="text" required />
+        <label for="wishlist-edit-venue">Venue</label>
+        <select id="wishlist-edit-venue"></select>
+        <label for="wishlist-edit-booking-url">Booking link</label>
+        <input id="wishlist-edit-booking-url" type="url" placeholder="https://..." />
+        <p id="wishlist-edit-error" class="error-message" aria-live="polite" hidden></p>
+        <button type="submit" class="primary">Save changes</button>
+        <button type="button" id="wishlist-edit-cancel" class="secondary">Cancel</button>
+      </form>
+    </dialog>
   `;
 
   venues = await fetchVenues();
@@ -59,6 +74,8 @@ export async function initWishlistView(panel) {
   panelEl.querySelector("#wishlist-add-form").addEventListener("submit", onAddSubmit);
   panelEl.querySelector("#mark-seen-form").addEventListener("submit", onMarkSeenSubmit);
   panelEl.querySelector("#mark-seen-cancel").addEventListener("click", closeMarkSeenDialog);
+  panelEl.querySelector("#wishlist-edit-form").addEventListener("submit", onEditSubmit);
+  panelEl.querySelector("#wishlist-edit-cancel").addEventListener("click", closeEditDialog);
 
   await refresh();
 }
@@ -86,6 +103,7 @@ function renderList() {
         </div>
         <div class="wishlist-row-actions">
           <button type="button" class="secondary" data-action="seen" data-id="${item.id}">Mark as seen</button>
+          <button type="button" class="secondary" data-action="edit" data-id="${item.id}">Edit</button>
           <button type="button" class="secondary" data-action="delete" data-id="${item.id}">Remove</button>
         </div>
       </div>`,
@@ -105,6 +123,9 @@ function renderList() {
   });
   listEl.querySelectorAll('[data-action="delete"]').forEach((btn) => {
     btn.addEventListener("click", () => onDelete(Number(btn.dataset.id)));
+  });
+  listEl.querySelectorAll('[data-action="edit"]').forEach((btn) => {
+    btn.addEventListener("click", () => openEditDialog(Number(btn.dataset.id)));
   });
 }
 
@@ -245,6 +266,46 @@ async function onMarkSeenSubmit(event) {
     notes: notes || null,
   });
   closeMarkSeenDialog();
+  await refresh();
+}
+
+let editingId = null;
+
+function openEditDialog(id) {
+  const item = items.find((i) => i.id === id);
+  editingId = id;
+  panelEl.querySelector("#wishlist-edit-title").value = item.title;
+  populateVenueSelect(panelEl.querySelector("#wishlist-edit-venue"), venues, item.venue_id);
+  panelEl.querySelector("#wishlist-edit-booking-url").value = item.booking_url || "";
+  panelEl.querySelector("#wishlist-edit-error").hidden = true;
+  panelEl.querySelector("#wishlist-edit-dialog").showModal();
+}
+
+function closeEditDialog() {
+  panelEl.querySelector("#wishlist-edit-dialog").close();
+  editingId = null;
+}
+
+async function onEditSubmit(event) {
+  event.preventDefault();
+  const title = panelEl.querySelector("#wishlist-edit-title").value.trim();
+  const venueId = panelEl.querySelector("#wishlist-edit-venue").value;
+  const bookingUrl = panelEl.querySelector("#wishlist-edit-booking-url").value.trim();
+  const errorEl = panelEl.querySelector("#wishlist-edit-error");
+
+  const otherTitles = items.filter((i) => i.id !== editingId).map((i) => i.title);
+  if (isDuplicateName(title, otherTitles)) {
+    errorEl.textContent = "This show is already on your wishlist.";
+    errorEl.hidden = false;
+    return;
+  }
+
+  await updateShow(editingId, {
+    title,
+    venue_id: venueId ? Number(venueId) : null,
+    booking_url: bookingUrl || null,
+  });
+  closeEditDialog();
   await refresh();
 }
 

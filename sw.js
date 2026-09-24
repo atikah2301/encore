@@ -16,6 +16,7 @@ const APP_SHELL = [
   "./js/app.js",
   "./js/wishlist.js",
   "./js/history.js",
+  "./js/venue-list.js",
   "./js/version.js",
   "./js/version-init.js",
   "./js/sw-register.js",

@@ -1,6 +1,7 @@
 import { signIn, signOut, getSession, onAuthStateChange } from "./auth.js";
 import { initWishlistView } from "./wishlist.js";
 import { initHistoryView } from "./history.js";
+import { initVenuesView } from "./venue-list.js";
 
 const viewLogin = document.querySelector("#view-login");
 const viewMain = document.querySelector("#view-main");
@@ -15,11 +16,13 @@ const tabButtons = document.querySelectorAll("nav.tabs button[data-tab]");
 const panels = {
   wishlist: document.querySelector("#tab-wishlist"),
   history: document.querySelector("#tab-history"),
+  venues: document.querySelector("#tab-venues"),
 };
 
 const initializers = {
   wishlist: initWishlistView,
   history: initHistoryView,
+  venues: initVenuesView,
 };
 
 // Both tabs fetch fresh data from Supabase, so both re-initialize on every visit -

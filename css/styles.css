@@ -1,0 +1,421 @@
+:root {
+  --bg: #1a0e10;
+  --surface: #2b1418;
+  --surface-raised: #3d1b21;
+  --border: #5c2a30;
+  --text: #f5e9df;
+  --text-dim: #c2a19a;
+  --accent: #d4a017;
+  --accent-text: #1a0e10;
+  --danger: #f87171;
+  --good: #4ade80;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 32px);
+}
+
+header.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+
+header.app-header h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.login-header {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.login-header h1 {
+  font-size: 2rem;
+  text-align: center;
+}
+
+.login-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+nav.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+nav.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+nav.tabs button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 10px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+nav.tabs button.active {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+#login-form {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.sidebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.sidebar .title-version {
+  order: 0;
+}
+
+.sidebar h1 {
+  font-size: 1.05rem;
+  margin: 0;
+  padding: 20px 0;
+}
+
+.sidebar #logout-button {
+  order: 1;
+  width: auto;
+  margin-top: 0;
+}
+
+.sidebar nav.tabs {
+  order: 2;
+  flex-basis: 100%;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  #app {
+    max-width: 1100px;
+  }
+
+  .app-shell {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .sidebar {
+    flex: 0 0 220px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 20px;
+    position: sticky;
+    top: 24px;
+  }
+
+  .sidebar h1 {
+    padding: 0;
+  }
+
+  .sidebar nav.tabs {
+    order: 1;
+    flex-direction: column;
+    flex-basis: auto;
+  }
+
+  .sidebar nav.tabs button {
+    flex: none;
+    text-align: left;
+  }
+
+  .sidebar #logout-button {
+    order: 2;
+    width: 100%;
+  }
+}
+
+.version-tag {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.view {
+  flex: 1;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent);
+}
+
+/* iOS Safari renders type="number" spin buttons and type="date" with a native minimum
+   content width that ignores our width:100%, so it can overflow its container on narrow
+   phone screens. This project only uses plain number inputs for day/month/year rather than
+   a native date picker (since the date is optional and can be a partial year/month/day). */
+input[type="number"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 16px;
+  width: 44px;
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.password-toggle:hover {
+  opacity: 1;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field-row-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin: -10px 0 16px;
+}
+
+button.primary {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.secondary {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+button.primary:disabled,
+button.secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin: -8px 0 12px;
+}
+
+/* Wishlist rows */
+
+.wishlist-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: grab;
+}
+
+.wishlist-row.dragging {
+  opacity: 0.5;
+  border-color: var(--accent);
+}
+
+.drag-handle {
+  color: var(--text-dim);
+  font-size: 1.2rem;
+  line-height: 1;
+  padding-top: 2px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.wishlist-row-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.wishlist-row-body .hint {
+  margin: 4px 0 0;
+  display: block;
+}
+
+.wishlist-row-body a {
+  color: var(--accent);
+}
+
+.wishlist-row-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wishlist-row-actions button {
+  width: auto;
+  margin-top: 0;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
+/* History rows */
+
+.history-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.history-row-header button {
+  width: auto;
+  margin-top: 0;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+.history-row p {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+
+/* Mark-as-seen dialog */
+
+dialog#mark-seen-dialog {
+  border: none;
+  border-radius: var(--radius);
+  padding: 0;
+  background: transparent;
+  max-width: 420px;
+  width: calc(100% - 32px);
+}
+
+dialog#mark-seen-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+dialog#mark-seen-dialog .card {
+  margin-bottom: 0;
+}
+
+#mark-seen-title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+}

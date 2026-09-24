@@ -11,6 +11,11 @@ export async function addVenue({ name, address }) {
   if (error) throw error;
 }
 
+export async function updateVenue(id, { name, address }) {
+  const { error } = await supabase.from("venues").update({ name, address }).eq("id", id);
+  if (error) throw error;
+}
+
 /** Populates a <select> with a blank "no venue" option followed by every venue,
  * since picking a venue is optional on every form that uses this. */
 export function populateVenueSelect(selectEl, venues, selectedId = null) {

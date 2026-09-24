@@ -414,7 +414,8 @@ dialog#add-venue-dialog,
 dialog#history-edit-dialog,
 dialog#wishlist-edit-dialog,
 dialog#add-wishlist-dialog,
-dialog#add-history-dialog {
+dialog#add-history-dialog,
+dialog#venue-edit-dialog {
   border: none;
   border-radius: var(--radius);
   padding: 0;
@@ -429,7 +430,8 @@ dialog#add-venue-dialog::backdrop,
 dialog#history-edit-dialog::backdrop,
 dialog#wishlist-edit-dialog::backdrop,
 dialog#add-wishlist-dialog::backdrop,
-dialog#add-history-dialog::backdrop {
+dialog#add-history-dialog::backdrop,
+dialog#venue-edit-dialog::backdrop {
   background: rgba(0, 0, 0, 0.6);
 }
 
@@ -438,7 +440,8 @@ dialog#add-venue-dialog .card,
 dialog#history-edit-dialog .card,
 dialog#wishlist-edit-dialog .card,
 dialog#add-wishlist-dialog .card,
-dialog#add-history-dialog .card {
+dialog#add-history-dialog .card,
+dialog#venue-edit-dialog .card {
   margin-bottom: 0;
 }
 
@@ -460,7 +463,22 @@ dialog#add-history-dialog .card {
 dialog#add-venue-dialog h2,
 dialog#wishlist-edit-dialog h2,
 dialog#add-wishlist-dialog h2,
-dialog#add-history-dialog h2 {
+dialog#add-history-dialog h2,
+dialog#venue-edit-dialog h2 {
   margin: 0 0 16px;
   font-size: 1.1rem;
+}
+
+.venue-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.venue-row-header button {
+  width: auto;
+  margin-top: 0;
+  padding: 6px 10px;
+  font-size: 0.8rem;
 }

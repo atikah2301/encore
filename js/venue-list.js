@@ -1,4 +1,4 @@
-import { fetchVenues, addVenue } from "./venues.js";
+import { fetchVenues, addVenue, updateVenue } from "./venues.js";
 import { isDuplicateName } from "./duplicates.js";
 
 let panelEl;
@@ -22,11 +22,26 @@ export async function initVenuesView(panel) {
         <button type="button" id="add-venue-cancel" class="secondary">Cancel</button>
       </form>
     </dialog>
+
+    <dialog id="venue-edit-dialog">
+      <form id="venue-edit-form" class="card">
+        <h2>Edit venue</h2>
+        <label for="venue-edit-name">Name</label>
+        <input id="venue-edit-name" type="text" required />
+        <label for="venue-edit-address">Address</label>
+        <input id="venue-edit-address" type="text" />
+        <p id="venue-edit-error" class="error-message" aria-live="polite" hidden></p>
+        <button type="submit" class="primary">Save changes</button>
+        <button type="button" id="venue-edit-cancel" class="secondary">Cancel</button>
+      </form>
+    </dialog>
   `;
 
   panelEl.querySelector("#add-venue-button").addEventListener("click", openAddVenueDialog);
   panelEl.querySelector("#add-venue-form").addEventListener("submit", onAddSubmit);
   panelEl.querySelector("#add-venue-cancel").addEventListener("click", closeAddVenueDialog);
+  panelEl.querySelector("#venue-edit-form").addEventListener("submit", onEditSubmit);
+  panelEl.querySelector("#venue-edit-cancel").addEventListener("click", closeEditDialog);
 
   await refresh();
 }
@@ -46,11 +61,18 @@ function renderList(venues) {
     .map(
       (venue) => `
         <div class="card venue-row">
-          <strong>${escapeHtml(venue.name)}</strong>
+          <div class="venue-row-header">
+            <strong>${escapeHtml(venue.name)}</strong>
+            <button type="button" class="secondary" data-action="edit" data-id="${venue.id}">Edit</button>
+          </div>
           ${venue.address ? `<div class="hint">${escapeHtml(venue.address)}</div>` : ""}
         </div>`,
     )
     .join("");
+
+  listEl.querySelectorAll('[data-action="edit"]').forEach((btn) => {
+    btn.addEventListener("click", () => openEditDialog(Number(btn.dataset.id)));
+  });
 }
 
 function openAddVenueDialog() {
@@ -78,6 +100,40 @@ async function onAddSubmit(event) {
 
   await addVenue({ name, address: address || null });
   closeAddVenueDialog();
+  await refresh();
+}
+
+let editingId = null;
+
+function openEditDialog(id) {
+  const venue = venues.find((v) => v.id === id);
+  editingId = id;
+  panelEl.querySelector("#venue-edit-name").value = venue.name;
+  panelEl.querySelector("#venue-edit-address").value = venue.address || "";
+  panelEl.querySelector("#venue-edit-error").hidden = true;
+  panelEl.querySelector("#venue-edit-dialog").showModal();
+}
+
+function closeEditDialog() {
+  panelEl.querySelector("#venue-edit-dialog").close();
+  editingId = null;
+}
+
+async function onEditSubmit(event) {
+  event.preventDefault();
+  const name = panelEl.querySelector("#venue-edit-name").value.trim();
+  const address = panelEl.querySelector("#venue-edit-address").value.trim();
+  const errorEl = panelEl.querySelector("#venue-edit-error");
+
+  const otherNames = venues.filter((v) => v.id !== editingId).map((v) => v.name);
+  if (isDuplicateName(name, otherNames)) {
+    errorEl.textContent = "A venue with this name already exists.";
+    errorEl.hidden = false;
+    return;
+  }
+
+  await updateVenue(editingId, { name, address: address || null });
+  closeEditDialog();
   await refresh();
 }
 

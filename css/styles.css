@@ -401,9 +401,10 @@ button.secondary:disabled {
   white-space: pre-wrap;
 }
 
-/* Mark-as-seen dialog */
+/* Dialogs (mark-as-seen, add-venue) */
 
-dialog#mark-seen-dialog {
+dialog#mark-seen-dialog,
+dialog#add-venue-dialog {
   border: none;
   border-radius: var(--radius);
   padding: 0;
@@ -413,15 +414,29 @@ dialog#mark-seen-dialog {
   width: calc(100% - 32px);
 }
 
-dialog#mark-seen-dialog::backdrop {
+dialog#mark-seen-dialog::backdrop,
+dialog#add-venue-dialog::backdrop {
   background: rgba(0, 0, 0, 0.6);
 }
 
-dialog#mark-seen-dialog .card {
+dialog#mark-seen-dialog .card,
+dialog#add-venue-dialog .card {
   margin-bottom: 0;
 }
 
 #mark-seen-title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+}
+
+/* Venues tab */
+
+#add-venue-button {
+  width: auto;
+  margin-bottom: 16px;
+}
+
+dialog#add-venue-dialog h2 {
   margin: 0 0 16px;
   font-size: 1.1rem;
 }

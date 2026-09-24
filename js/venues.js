@@ -6,6 +6,11 @@ export async function fetchVenues() {
   return data;
 }
 
+export async function addVenue({ name, address }) {
+  const { error } = await supabase.from("venues").insert({ name, address });
+  if (error) throw error;
+}
+
 /** Populates a <select> with a blank "no venue" option followed by every venue,
  * since picking a venue is optional on every form that uses this. */
 export function populateVenueSelect(selectEl, venues, selectedId = null) {

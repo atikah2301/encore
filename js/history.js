@@ -1,6 +1,6 @@
 import { fetchHistory, addToHistory, updateShow, deleteShow } from "./shows.js";
 import { fetchVenues, populateVenueSelect } from "./venues.js";
-import { buildDateSeen, formatDateSeen, parseDateSeen } from "./date.js";
+import { buildDateSeen, formatDateSeen, parseDateSeen, clampNumberInput, monthOptionsHtml } from "./date.js";
 import { isDuplicateName } from "./duplicates.js";
 
 let panelEl;
@@ -23,7 +23,7 @@ export async function initHistoryView(panel) {
         <label>Date seen (optional - day and month may be left blank)</label>
         <div class="field-row field-row-3">
           <input id="history-day" type="number" min="1" max="31" placeholder="Day" />
-          <input id="history-month" type="number" min="1" max="12" placeholder="Month" />
+          <select id="history-month">${monthOptionsHtml()}</select>
           <input id="history-year" type="number" min="1900" max="2100" placeholder="Year" />
         </div>
         <label for="history-rating">Rating</label>
@@ -53,7 +53,7 @@ export async function initHistoryView(panel) {
         <label>Date seen (optional - day and month may be left blank)</label>
         <div class="field-row field-row-3">
           <input id="history-edit-day" type="number" min="1" max="31" placeholder="Day" />
-          <input id="history-edit-month" type="number" min="1" max="12" placeholder="Month" />
+          <select id="history-edit-month">${monthOptionsHtml()}</select>
           <input id="history-edit-year" type="number" min="1900" max="2100" placeholder="Year" />
         </div>
         <label for="history-edit-rating">Rating</label>
@@ -82,6 +82,10 @@ export async function initHistoryView(panel) {
   panelEl.querySelector("#history-add-cancel").addEventListener("click", closeAddDialog);
   panelEl.querySelector("#history-edit-form").addEventListener("submit", onEditSubmit);
   panelEl.querySelector("#history-edit-cancel").addEventListener("click", closeEditDialog);
+
+  ["#history-day", "#history-year", "#history-edit-day", "#history-edit-year"].forEach((selector) =>
+    clampNumberInput(panelEl.querySelector(selector)),
+  );
 
   await refresh();
 }

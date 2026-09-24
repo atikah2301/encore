@@ -324,6 +324,39 @@ button.secondary:disabled {
   margin: -8px 0 12px;
 }
 
+/* Wishlist kanban board - columns stack vertically and collapse, since the wishlist is
+   viewed mostly on a phone; dragging a card between columns is the way to change its
+   stage (see js/wishlist.js). */
+
+.kanban-column {
+  margin-bottom: 12px;
+}
+
+.kanban-column summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 12px 4px;
+  list-style: none;
+}
+
+.kanban-column summary::-webkit-details-marker {
+  display: none;
+}
+
+.kanban-count {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.kanban-column-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 12px;
+  padding: 4px;
+}
+
 /* Wishlist rows */
 
 .wishlist-row {
@@ -415,7 +448,9 @@ dialog#history-edit-dialog,
 dialog#wishlist-edit-dialog,
 dialog#add-wishlist-dialog,
 dialog#add-history-dialog,
-dialog#venue-edit-dialog {
+dialog#venue-edit-dialog,
+dialog#announce-dialog,
+dialog#book-dialog {
   border: none;
   border-radius: var(--radius);
   padding: 0;
@@ -431,7 +466,9 @@ dialog#history-edit-dialog::backdrop,
 dialog#wishlist-edit-dialog::backdrop,
 dialog#add-wishlist-dialog::backdrop,
 dialog#add-history-dialog::backdrop,
-dialog#venue-edit-dialog::backdrop {
+dialog#venue-edit-dialog::backdrop,
+dialog#announce-dialog::backdrop,
+dialog#book-dialog::backdrop {
   background: rgba(0, 0, 0, 0.6);
 }
 
@@ -441,7 +478,9 @@ dialog#history-edit-dialog .card,
 dialog#wishlist-edit-dialog .card,
 dialog#add-wishlist-dialog .card,
 dialog#add-history-dialog .card,
-dialog#venue-edit-dialog .card {
+dialog#venue-edit-dialog .card,
+dialog#announce-dialog .card,
+dialog#book-dialog .card {
   margin-bottom: 0;
 }
 
@@ -464,7 +503,9 @@ dialog#add-venue-dialog h2,
 dialog#wishlist-edit-dialog h2,
 dialog#add-wishlist-dialog h2,
 dialog#add-history-dialog h2,
-dialog#venue-edit-dialog h2 {
+dialog#venue-edit-dialog h2,
+dialog#announce-dialog h2,
+dialog#book-dialog h2 {
   margin: 0 0 16px;
   font-size: 1.1rem;
 }

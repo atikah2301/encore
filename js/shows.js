@@ -1,6 +1,8 @@
 import { supabase } from "./supabase-client.js";
 
-const SELECT_COLUMNS = "id, title, venue_id, seen, date_seen, date_seen_precision, rating, companions, notes, booking_url, position, venues(name)";
+const SELECT_COLUMNS =
+  "id, title, venue_id, seen, date_seen, date_seen_precision, rating, companions, notes, booking_url, position, " +
+  "wishlist_status, on_sale_date, booked, booked_date, booked_companions, venues(name)";
 
 export async function fetchHistory() {
   const { data, error } = await supabase

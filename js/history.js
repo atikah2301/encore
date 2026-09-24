@@ -10,34 +10,40 @@ let shows = [];
 export async function initHistoryView(panel) {
   panelEl = panel;
   panelEl.innerHTML = `
-    <form id="history-add-form" class="card">
-      <label for="history-title">Show title</label>
-      <input id="history-title" type="text" required />
-      <label for="history-venue">Venue</label>
-      <select id="history-venue"></select>
-      <label>Date seen (optional - day and month may be left blank)</label>
-      <div class="field-row field-row-3">
-        <input id="history-day" type="number" min="1" max="31" placeholder="Day" />
-        <input id="history-month" type="number" min="1" max="12" placeholder="Month" />
-        <input id="history-year" type="number" min="1900" max="2100" placeholder="Year" />
-      </div>
-      <label for="history-rating">Rating</label>
-      <select id="history-rating">
-        <option value="">— none —</option>
-        <option value="1">★</option>
-        <option value="2">★★</option>
-        <option value="3">★★★</option>
-        <option value="4">★★★★</option>
-        <option value="5">★★★★★</option>
-      </select>
-      <label for="history-companions">Companions</label>
-      <input id="history-companions" type="text" placeholder="Who did you go with?" />
-      <label for="history-notes">Notes</label>
-      <textarea id="history-notes" rows="4"></textarea>
-      <p id="history-add-error" class="error-message" aria-live="polite" hidden></p>
-      <button type="submit" class="primary">Add to history</button>
-    </form>
+    <button type="button" id="add-history-button" class="secondary">Add show</button>
     <div id="history-list"></div>
+
+    <dialog id="add-history-dialog">
+      <form id="history-add-form" class="card">
+        <h2>Add to history</h2>
+        <label for="history-title">Show title</label>
+        <input id="history-title" type="text" required />
+        <label for="history-venue">Venue</label>
+        <select id="history-venue"></select>
+        <label>Date seen (optional - day and month may be left blank)</label>
+        <div class="field-row field-row-3">
+          <input id="history-day" type="number" min="1" max="31" placeholder="Day" />
+          <input id="history-month" type="number" min="1" max="12" placeholder="Month" />
+          <input id="history-year" type="number" min="1900" max="2100" placeholder="Year" />
+        </div>
+        <label for="history-rating">Rating</label>
+        <select id="history-rating">
+          <option value="">— none —</option>
+          <option value="1">★</option>
+          <option value="2">★★</option>
+          <option value="3">★★★</option>
+          <option value="4">★★★★</option>
+          <option value="5">★★★★★</option>
+        </select>
+        <label for="history-companions">Companions</label>
+        <input id="history-companions" type="text" placeholder="Who did you go with?" />
+        <label for="history-notes">Notes</label>
+        <textarea id="history-notes" rows="4"></textarea>
+        <p id="history-add-error" class="error-message" aria-live="polite" hidden></p>
+        <button type="submit" class="primary">Add to history</button>
+        <button type="button" id="history-add-cancel" class="secondary">Cancel</button>
+      </form>
+    </dialog>
 
     <dialog id="history-edit-dialog">
       <form id="history-edit-form" class="card">
@@ -71,7 +77,9 @@ export async function initHistoryView(panel) {
 
   venues = await fetchVenues();
   populateVenueSelect(panelEl.querySelector("#history-venue"), venues);
+  panelEl.querySelector("#add-history-button").addEventListener("click", openAddDialog);
   panelEl.querySelector("#history-add-form").addEventListener("submit", onAddSubmit);
+  panelEl.querySelector("#history-add-cancel").addEventListener("click", closeAddDialog);
   panelEl.querySelector("#history-edit-form").addEventListener("submit", onEditSubmit);
   panelEl.querySelector("#history-edit-cancel").addEventListener("click", closeEditDialog);
 
@@ -119,6 +127,17 @@ function renderList(shows) {
   });
 }
 
+function openAddDialog() {
+  panelEl.querySelector("#history-add-form").reset();
+  populateVenueSelect(panelEl.querySelector("#history-venue"), venues);
+  panelEl.querySelector("#history-add-error").hidden = true;
+  panelEl.querySelector("#add-history-dialog").showModal();
+}
+
+function closeAddDialog() {
+  panelEl.querySelector("#add-history-dialog").close();
+}
+
 async function onAddSubmit(event) {
   event.preventDefault();
   const title = panelEl.querySelector("#history-title").value.trim();
@@ -148,8 +167,7 @@ async function onAddSubmit(event) {
     companions: companions || null,
     notes: notes || null,
   });
-  event.target.reset();
-  populateVenueSelect(panelEl.querySelector("#history-venue"), venues);
+  closeAddDialog();
   await refresh();
 }
 

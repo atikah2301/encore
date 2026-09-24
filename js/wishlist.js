@@ -11,17 +11,23 @@ let draggingId = null;
 export async function initWishlistView(panel) {
   panelEl = panel;
   panelEl.innerHTML = `
-    <form id="wishlist-add-form" class="card">
-      <label for="wishlist-title">Show title</label>
-      <input id="wishlist-title" type="text" required />
-      <label for="wishlist-venue">Venue</label>
-      <select id="wishlist-venue"></select>
-      <label for="wishlist-booking-url">Booking link</label>
-      <input id="wishlist-booking-url" type="url" placeholder="https://..." />
-      <p id="wishlist-add-error" class="error-message" aria-live="polite" hidden></p>
-      <button type="submit" class="primary">Add to wishlist</button>
-    </form>
+    <button type="button" id="add-wishlist-button" class="secondary">Add show</button>
     <div id="wishlist-list"></div>
+
+    <dialog id="add-wishlist-dialog">
+      <form id="wishlist-add-form" class="card">
+        <h2>Add to wishlist</h2>
+        <label for="wishlist-title">Show title</label>
+        <input id="wishlist-title" type="text" required />
+        <label for="wishlist-venue">Venue</label>
+        <select id="wishlist-venue"></select>
+        <label for="wishlist-booking-url">Booking link</label>
+        <input id="wishlist-booking-url" type="url" placeholder="https://..." />
+        <p id="wishlist-add-error" class="error-message" aria-live="polite" hidden></p>
+        <button type="submit" class="primary">Add to wishlist</button>
+        <button type="button" id="wishlist-add-cancel" class="secondary">Cancel</button>
+      </form>
+    </dialog>
 
     <dialog id="mark-seen-dialog">
       <form id="mark-seen-form" class="card">
@@ -71,7 +77,9 @@ export async function initWishlistView(panel) {
   venues = await fetchVenues();
   populateVenueSelect(panelEl.querySelector("#wishlist-venue"), venues);
 
+  panelEl.querySelector("#add-wishlist-button").addEventListener("click", openAddDialog);
   panelEl.querySelector("#wishlist-add-form").addEventListener("submit", onAddSubmit);
+  panelEl.querySelector("#wishlist-add-cancel").addEventListener("click", closeAddDialog);
   panelEl.querySelector("#mark-seen-form").addEventListener("submit", onMarkSeenSubmit);
   panelEl.querySelector("#mark-seen-cancel").addEventListener("click", closeMarkSeenDialog);
   panelEl.querySelector("#wishlist-edit-form").addEventListener("submit", onEditSubmit);
@@ -196,6 +204,17 @@ async function persistOrder() {
   await reorderWishlist(items.map((i) => i.id));
 }
 
+function openAddDialog() {
+  panelEl.querySelector("#wishlist-add-form").reset();
+  populateVenueSelect(panelEl.querySelector("#wishlist-venue"), venues);
+  panelEl.querySelector("#wishlist-add-error").hidden = true;
+  panelEl.querySelector("#add-wishlist-dialog").showModal();
+}
+
+function closeAddDialog() {
+  panelEl.querySelector("#add-wishlist-dialog").close();
+}
+
 async function onAddSubmit(event) {
   event.preventDefault();
   const title = panelEl.querySelector("#wishlist-title").value.trim();
@@ -215,8 +234,7 @@ async function onAddSubmit(event) {
     venue_id: venueId ? Number(venueId) : null,
     booking_url: bookingUrl || null,
   });
-  event.target.reset();
-  populateVenueSelect(panelEl.querySelector("#wishlist-venue"), venues);
+  closeAddDialog();
   await refresh();
 }
 

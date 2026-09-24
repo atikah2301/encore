@@ -412,7 +412,9 @@ button.secondary:disabled {
 dialog#mark-seen-dialog,
 dialog#add-venue-dialog,
 dialog#history-edit-dialog,
-dialog#wishlist-edit-dialog {
+dialog#wishlist-edit-dialog,
+dialog#add-wishlist-dialog,
+dialog#add-history-dialog {
   border: none;
   border-radius: var(--radius);
   padding: 0;
@@ -425,14 +427,18 @@ dialog#wishlist-edit-dialog {
 dialog#mark-seen-dialog::backdrop,
 dialog#add-venue-dialog::backdrop,
 dialog#history-edit-dialog::backdrop,
-dialog#wishlist-edit-dialog::backdrop {
+dialog#wishlist-edit-dialog::backdrop,
+dialog#add-wishlist-dialog::backdrop,
+dialog#add-history-dialog::backdrop {
   background: rgba(0, 0, 0, 0.6);
 }
 
 dialog#mark-seen-dialog .card,
 dialog#add-venue-dialog .card,
 dialog#history-edit-dialog .card,
-dialog#wishlist-edit-dialog .card {
+dialog#wishlist-edit-dialog .card,
+dialog#add-wishlist-dialog .card,
+dialog#add-history-dialog .card {
   margin-bottom: 0;
 }
 
@@ -444,13 +450,17 @@ dialog#wishlist-edit-dialog .card {
 
 /* Venues tab */
 
-#add-venue-button {
+#add-venue-button,
+#add-wishlist-button,
+#add-history-button {
   width: auto;
   margin-bottom: 16px;
 }
 
 dialog#add-venue-dialog h2,
-dialog#wishlist-edit-dialog h2 {
+dialog#wishlist-edit-dialog h2,
+dialog#add-wishlist-dialog h2,
+dialog#add-history-dialog h2 {
   margin: 0 0 16px;
   font-size: 1.1rem;
 }

@@ -1,8 +1,18 @@
 import { supabase } from "./supabase-client.js";
 
 const SELECT_COLUMNS =
-  "id, title, venue_id, seen, date_seen, date_seen_precision, rating, companions, notes, booking_url, position, " +
-  "wishlist_status, on_sale_date, booked, booked_date, booked_companions, venues(name)";
+  "id, title, venue_id, seen, date_seen, date_seen_precision, rating, notes, booking_url, position, " +
+  "wishlist_status, on_sale_date, booked, booked_date, venues(name), " +
+  "show_companions(companions(id, name))";
+
+// Supabase returns the join as a nested array of wrapper objects
+// (`show_companions: [{ companions: {id, name} }, ...]`) - flatten that into a plain
+// `companions: [{id, name}, ...]` array so the rest of the app doesn't need to know
+// about the join table shape.
+function flattenCompanions(row) {
+  const { show_companions, ...rest } = row;
+  return { ...rest, companions: (show_companions ?? []).map((sc) => sc.companions) };
+}
 
 export async function fetchHistory() {
   const { data, error } = await supabase
@@ -11,7 +21,7 @@ export async function fetchHistory() {
     .eq("seen", true)
     .order("date_seen", { ascending: false, nullsFirst: false });
   if (error) throw error;
-  return data;
+  return data.map(flattenCompanions);
 }
 
 export async function fetchWishlist() {
@@ -21,7 +31,7 @@ export async function fetchWishlist() {
     .eq("seen", false)
     .order("position");
   if (error) throw error;
-  return data;
+  return data.map(flattenCompanions);
 }
 
 export async function addToWishlist({ title, venue_id, booking_url }) {
@@ -33,11 +43,14 @@ export async function addToWishlist({ title, venue_id, booking_url }) {
   if (error) throw error;
 }
 
-export async function addToHistory({ title, venue_id, date_seen, date_seen_precision, rating, companions, notes }) {
-  const { error } = await supabase
+export async function addToHistory({ title, venue_id, date_seen, date_seen_precision, rating, notes }) {
+  const { data, error } = await supabase
     .from("shows")
-    .insert({ title, venue_id, seen: true, date_seen, date_seen_precision, rating, companions, notes });
+    .insert({ title, venue_id, seen: true, date_seen, date_seen_precision, rating, notes })
+    .select("id")
+    .single();
   if (error) throw error;
+  return data.id;
 }
 
 export async function updateShow(id, fields) {
@@ -52,15 +65,15 @@ export async function deleteShow(id) {
 
 /** Flips a wishlist item into a seen show in place - a single UPDATE, since history and
  * wishlist are the same table (see supabase/migrations/README.md). Clears `position` so
- * the row drops out of `fetchWishlist`'s `where seen = false` query. */
-export async function markAsSeen(id, { venue_id, date_seen, date_seen_precision, rating, companions, notes }) {
+ * the row drops out of `fetchWishlist`'s `where seen = false` query. Companions carry
+ * over automatically since they're attached to the show row itself, not this update. */
+export async function markAsSeen(id, { venue_id, date_seen, date_seen_precision, rating, notes }) {
   await updateShow(id, {
     seen: true,
     venue_id,
     date_seen,
     date_seen_precision,
     rating,
-    companions,
     notes,
     position: null,
   });

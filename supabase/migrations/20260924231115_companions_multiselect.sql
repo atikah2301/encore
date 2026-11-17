@@ -59,9 +59,9 @@ on conflict (lower(name)) do nothing;
 insert into encore.show_companions (show_id, companion_id)
 select distinct s.id, c.id
 from encore.shows s
-cross join lateral unnest(string_to_array(coalesce(s.companions, '') || ',' || coalesce(s.booked_companions, ''), ',')) as name
-join encore.companions c on lower(trim(name)) = lower(c.name)
-where trim(name) <> ''
+cross join lateral unnest(string_to_array(coalesce(s.companions, '') || ',' || coalesce(s.booked_companions, ''), ',')) as n(raw_name)
+join encore.companions c on lower(trim(n.raw_name)) = lower(c.name)
+where trim(n.raw_name) <> ''
 on conflict do nothing;
 
 alter table encore.shows

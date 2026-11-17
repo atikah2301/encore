@@ -1,5 +1,7 @@
 import { fetchWishlist, addToWishlist, updateShow, reorderWishlist, deleteShow, markAsSeen } from "./shows.js";
 import { fetchVenues, populateVenueSelect } from "./venues.js";
+import { fetchCompanions, setShowCompanions } from "./companions.js";
+import { companionPickerHtml, initCompanionPicker } from "./companion-picker.js";
 import { buildDateSeen, parseDateSeen, formatPlainDate, clampNumberInput, monthOptionsHtml } from "./date.js";
 import { isDuplicateName } from "./duplicates.js";
 
@@ -22,6 +24,9 @@ function stageOf(item) {
 let panelEl;
 let venues = [];
 let items = [];
+let allCompanions = [];
+let bookPicker;
+let markSeenPicker;
 
 let draggingId = null;
 let draggingOriginStage = null;
@@ -68,8 +73,8 @@ export async function initWishlistView(panel) {
         <h2>Booked!</h2>
         <label for="book-date">Date</label>
         <input id="book-date" type="date" required />
-        <label for="book-companions">Companions</label>
-        <input id="book-companions" type="text" placeholder="Who are you going with?" />
+        <label>Companions</label>
+        ${companionPickerHtml("book")}
         <button type="submit" class="primary">Save</button>
         <button type="button" id="book-cancel" class="secondary">Cancel</button>
       </form>
@@ -95,8 +100,8 @@ export async function initWishlistView(panel) {
           <option value="4">★★★★</option>
           <option value="5">★★★★★</option>
         </select>
-        <label for="mark-seen-companions">Companions</label>
-        <input id="mark-seen-companions" type="text" placeholder="Who did you go with?" />
+        <label>Companions</label>
+        ${companionPickerHtml("mark-seen")}
         <label for="mark-seen-notes">Notes</label>
         <textarea id="mark-seen-notes" rows="4"></textarea>
         <button type="submit" class="primary">Mark as seen</button>
@@ -121,7 +126,10 @@ export async function initWishlistView(panel) {
   `;
 
   venues = await fetchVenues();
+  allCompanions = await fetchCompanions();
   populateVenueSelect(panelEl.querySelector("#wishlist-venue"), venues);
+  bookPicker = initCompanionPicker(panelEl.querySelector("#book-picker"), allCompanions);
+  markSeenPicker = initCompanionPicker(panelEl.querySelector("#mark-seen-picker"), allCompanions);
 
   panelEl.querySelector("#add-wishlist-button").addEventListener("click", openAddDialog);
   panelEl.querySelector("#wishlist-add-form").addEventListener("submit", onAddSubmit);
@@ -191,7 +199,7 @@ function renderCard(item) {
         ${item.venues ? `<div class="hint">${escapeHtml(item.venues.name)}</div>` : ""}
         ${item.on_sale_date ? `<div class="hint">On sale ${formatPlainDate(item.on_sale_date)}</div>` : ""}
         ${item.booked && item.booked_date ? `<div class="hint">Booked for ${formatPlainDate(item.booked_date)}</div>` : ""}
-        ${item.booked && item.booked_companions ? `<div class="hint">With: ${escapeHtml(item.booked_companions)}</div>` : ""}
+        ${item.booked && item.companions?.length ? `<div class="hint">With: ${escapeHtml(item.companions.map((c) => c.name).join(", "))}</div>` : ""}
         ${item.booking_url ? `<a href="${escapeHtml(item.booking_url)}" target="_blank" rel="noopener" class="hint">Booking link</a>` : ""}
       </div>
       <div class="wishlist-row-actions">
@@ -305,8 +313,9 @@ async function finishDrag() {
 }
 
 /** Applies a stage change plus whatever extra detail that stage carries (an on-sale date
- * for "announced", a date+companions for "booked"). Clears fields that only make sense in
- * a stage the item is leaving, so switching stages doesn't leave stale detail behind. */
+ * for "announced", a date for "booked"). Clears fields that only make sense in a stage the
+ * item is leaving, so switching stages doesn't leave stale detail behind. Companions aren't
+ * touched here - they're attached to the show itself, not a particular stage. */
 async function applyStageChange(id, targetStage, extra = {}) {
   const current = items.find((i) => i.id === id);
   await updateShow(id, {
@@ -319,7 +328,6 @@ async function applyStageChange(id, targetStage, extra = {}) {
           ? extra.on_sale_date
           : current?.on_sale_date ?? null,
     booked_date: targetStage === "booked" ? extra.booked_date ?? null : null,
-    booked_companions: targetStage === "booked" ? extra.booked_companions ?? null : null,
   });
 }
 
@@ -350,9 +358,10 @@ async function onAnnounceSubmit(event) {
 }
 
 function openBookDialog(id) {
+  const item = items.find((i) => i.id === id);
   pendingMoveId = id;
   panelEl.querySelector("#book-date").value = "";
-  panelEl.querySelector("#book-companions").value = "";
+  bookPicker.reset(item.companions || []);
   panelEl.querySelector("#book-dialog").showModal();
 }
 
@@ -364,8 +373,8 @@ function closeBookDialog() {
 async function onBookSubmit(event) {
   event.preventDefault();
   const bookedDate = panelEl.querySelector("#book-date").value;
-  const companions = panelEl.querySelector("#book-companions").value.trim();
-  await applyStageChange(pendingMoveId, "booked", { booked_date: bookedDate, booked_companions: companions || null });
+  await applyStageChange(pendingMoveId, "booked", { booked_date: bookedDate });
+  await setShowCompanions(pendingMoveId, bookPicker.getSelectedIds());
   closeBookDialog();
   await refresh();
 }
@@ -421,7 +430,7 @@ function openMarkSeenDialog(id) {
   panelEl.querySelector("#mark-seen-month").value = month || "";
   panelEl.querySelector("#mark-seen-year").value = year || "";
   panelEl.querySelector("#mark-seen-rating").value = "";
-  panelEl.querySelector("#mark-seen-companions").value = item.booked_companions || "";
+  markSeenPicker.reset(item.companions || []);
   panelEl.querySelector("#mark-seen-notes").value = "";
   panelEl.querySelector("#mark-seen-dialog").showModal();
 }
@@ -438,7 +447,6 @@ async function onMarkSeenSubmit(event) {
   const month = panelEl.querySelector("#mark-seen-month").value;
   const year = panelEl.querySelector("#mark-seen-year").value;
   const rating = panelEl.querySelector("#mark-seen-rating").value;
-  const companions = panelEl.querySelector("#mark-seen-companions").value.trim();
   const notes = panelEl.querySelector("#mark-seen-notes").value.trim();
 
   const { date_seen, date_seen_precision } = buildDateSeen(year, month, day);
@@ -447,9 +455,9 @@ async function onMarkSeenSubmit(event) {
     date_seen,
     date_seen_precision,
     rating: rating ? Number(rating) : null,
-    companions: companions || null,
     notes: notes || null,
   });
+  await setShowCompanions(markSeenId, markSeenPicker.getSelectedIds());
   closeMarkSeenDialog();
   await refresh();
 }

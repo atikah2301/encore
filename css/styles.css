@@ -357,6 +357,69 @@ button.secondary:disabled {
   padding: 4px;
 }
 
+/* Companion picker - typeahead multi-select used by history/wishlist forms
+   (js/companion-picker.js). */
+
+.companion-picker {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.companion-picker-input {
+  margin-bottom: 0;
+}
+
+.companion-picker-dropdown {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.companion-option {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.companion-option:hover {
+  background: var(--surface);
+}
+
+.companion-picker-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.companion-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.companion-tag button {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
 /* Wishlist rows */
 
 .wishlist-row {

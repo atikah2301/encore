@@ -1,11 +1,16 @@
 import { fetchHistory, addToHistory, updateShow, deleteShow } from "./shows.js";
 import { fetchVenues, populateVenueSelect } from "./venues.js";
+import { fetchCompanions, setShowCompanions } from "./companions.js";
+import { companionPickerHtml, initCompanionPicker } from "./companion-picker.js";
 import { buildDateSeen, formatDateSeen, parseDateSeen, clampNumberInput, monthOptionsHtml } from "./date.js";
 import { isDuplicateName } from "./duplicates.js";
 
 let panelEl;
 let venues = [];
 let shows = [];
+let allCompanions = [];
+let addPicker;
+let editPicker;
 
 export async function initHistoryView(panel) {
   panelEl = panel;
@@ -35,8 +40,8 @@ export async function initHistoryView(panel) {
           <option value="4">★★★★</option>
           <option value="5">★★★★★</option>
         </select>
-        <label for="history-companions">Companions</label>
-        <input id="history-companions" type="text" placeholder="Who did you go with?" />
+        <label>Companions</label>
+        ${companionPickerHtml("history-add")}
         <label for="history-notes">Notes</label>
         <textarea id="history-notes" rows="4"></textarea>
         <p id="history-add-error" class="error-message" aria-live="polite" hidden></p>
@@ -65,8 +70,8 @@ export async function initHistoryView(panel) {
           <option value="4">★★★★</option>
           <option value="5">★★★★★</option>
         </select>
-        <label for="history-edit-companions">Companions</label>
-        <input id="history-edit-companions" type="text" placeholder="Who did you go with?" />
+        <label>Companions</label>
+        ${companionPickerHtml("history-edit")}
         <label for="history-edit-notes">Notes</label>
         <textarea id="history-edit-notes" rows="4"></textarea>
         <button type="submit" class="primary">Save changes</button>
@@ -76,7 +81,10 @@ export async function initHistoryView(panel) {
   `;
 
   venues = await fetchVenues();
+  allCompanions = await fetchCompanions();
   populateVenueSelect(panelEl.querySelector("#history-venue"), venues);
+  addPicker = initCompanionPicker(panelEl.querySelector("#history-add-picker"), allCompanions);
+  editPicker = initCompanionPicker(panelEl.querySelector("#history-edit-picker"), allCompanions);
   panelEl.querySelector("#add-history-button").addEventListener("click", openAddDialog);
   panelEl.querySelector("#history-add-form").addEventListener("submit", onAddSubmit);
   panelEl.querySelector("#history-add-cancel").addEventListener("click", closeAddDialog);
@@ -117,7 +125,7 @@ function renderList(shows) {
           <div class="hint">
             ${[dateLabel, show.venues?.name, stars].filter(Boolean).join(" · ")}
           </div>
-          ${show.companions ? `<div class="hint">With: ${escapeHtml(show.companions)}</div>` : ""}
+          ${show.companions?.length ? `<div class="hint">With: ${escapeHtml(show.companions.map((c) => c.name).join(", "))}</div>` : ""}
           ${show.notes ? `<p>${escapeHtml(show.notes)}</p>` : ""}
         </div>`;
     })
@@ -134,6 +142,7 @@ function renderList(shows) {
 function openAddDialog() {
   panelEl.querySelector("#history-add-form").reset();
   populateVenueSelect(panelEl.querySelector("#history-venue"), venues);
+  addPicker.reset();
   panelEl.querySelector("#history-add-error").hidden = true;
   panelEl.querySelector("#add-history-dialog").showModal();
 }
@@ -150,7 +159,6 @@ async function onAddSubmit(event) {
   const month = panelEl.querySelector("#history-month").value;
   const year = panelEl.querySelector("#history-year").value;
   const rating = panelEl.querySelector("#history-rating").value;
-  const companions = panelEl.querySelector("#history-companions").value.trim();
   const notes = panelEl.querySelector("#history-notes").value.trim();
   const errorEl = panelEl.querySelector("#history-add-error");
 
@@ -162,15 +170,15 @@ async function onAddSubmit(event) {
   errorEl.hidden = true;
 
   const { date_seen, date_seen_precision } = buildDateSeen(year, month, day);
-  await addToHistory({
+  const showId = await addToHistory({
     title,
     venue_id: venueId ? Number(venueId) : null,
     date_seen,
     date_seen_precision,
     rating: rating ? Number(rating) : null,
-    companions: companions || null,
     notes: notes || null,
   });
+  await setShowCompanions(showId, addPicker.getSelectedIds());
   closeAddDialog();
   await refresh();
 }
@@ -192,7 +200,7 @@ function openEditDialog(id) {
   panelEl.querySelector("#history-edit-month").value = month || "";
   panelEl.querySelector("#history-edit-year").value = year || "";
   panelEl.querySelector("#history-edit-rating").value = show.rating || "";
-  panelEl.querySelector("#history-edit-companions").value = show.companions || "";
+  editPicker.reset(show.companions || []);
   panelEl.querySelector("#history-edit-notes").value = show.notes || "";
   panelEl.querySelector("#history-edit-dialog").showModal();
 }
@@ -209,7 +217,6 @@ async function onEditSubmit(event) {
   const month = panelEl.querySelector("#history-edit-month").value;
   const year = panelEl.querySelector("#history-edit-year").value;
   const rating = panelEl.querySelector("#history-edit-rating").value;
-  const companions = panelEl.querySelector("#history-edit-companions").value.trim();
   const notes = panelEl.querySelector("#history-edit-notes").value.trim();
 
   const { date_seen, date_seen_precision } = buildDateSeen(year, month, day);
@@ -218,9 +225,9 @@ async function onEditSubmit(event) {
     date_seen,
     date_seen_precision,
     rating: rating ? Number(rating) : null,
-    companions: companions || null,
     notes: notes || null,
   });
+  await setShowCompanions(editingId, editPicker.getSelectedIds());
   closeEditDialog();
   await refresh();
 }
